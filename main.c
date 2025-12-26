@@ -1,39 +1,5 @@
 #include "philo.h"
 
-static int print(t_arg *a, int id, char *m)
-{
-    int p;
-
-    (void)m;
-    (void)id;
-    p = 0;
-    pthread_mutex_lock(&a->print_w);
-    pthread_mutex_lock(&a->dpn_lock);
-    if (!a->dead_philo_num)
-    {
-        printf("%ld %d %s\n", for_time() - a->start_time, id, m);
-        p = 1;
-    }
-    pthread_mutex_unlock(&a->print_w);
-    pthread_mutex_unlock(&a->dpn_lock);
-    return (p);
-}
-
-static int one_philo(t_philo *p)
-{
-    if (p->arg->num_of_philo == 1)
-    {
-        p->last_eat = for_time();
-        pthread_mutex_lock(&p->arg->fork[p->r_fork]);
-        print(p->arg, p->l_fork + 1, "has taken a fork");
-        while (!p->arg->dead_philo_num)
-            usleep(100);
-        pthread_mutex_unlock(&p->arg->fork[p->r_fork]);
-        return (1);
-    }
-    return (0);
-}
-
 static void eating(t_philo *p)
 {
     if ((p->l_fork + 1) % 2 == 0)
@@ -46,82 +12,79 @@ static void eating(t_philo *p)
         pthread_mutex_lock(&p->arg->fork[p->l_fork]);
         pthread_mutex_lock(&p->arg->fork[p->r_fork]);
     }
+    print(p->arg, p->l_fork + 1, "has taken a fork");
+    print(p->arg, p->l_fork + 1, "has taken a fork");
     pthread_mutex_lock(&p->meal);
     p->last_eat = for_time();
     pthread_mutex_unlock(&p->meal);
-    p->eat_c++;
-    print(p->arg, p->l_fork + 1, "has taken a fork");
-    print(p->arg, p->l_fork + 1, "has taken a fork");
     print(p->arg, p->l_fork + 1, "is eating");
     usleep(p->arg->eat_time * 1000);
+    pthread_mutex_lock(&p->m_c);
+    p->eat_c++;
+    pthread_mutex_unlock(&p->m_c);
     pthread_mutex_unlock(&p->arg->fork[p->r_fork]);
     pthread_mutex_unlock(&p->arg->fork[p->l_fork]);
 }
 
-static int is_dead(t_arg *arg)
+void thinking(t_philo *p)
 {
-    int dead;
+    long t_time;
+    long max_time;
 
-    pthread_mutex_lock(&arg->dpn_lock);
-    dead = arg->dead_philo_num;
-    pthread_mutex_unlock(&arg->dpn_lock);
-    if (dead == 1)
+
+    print(p->arg, p->l_fork + 1, "is thinking");
+    if (p->arg->num_of_philo % 2 != 0)
+    {
+        t_time = p->arg->eat_time * 0.8;
+        max_time = p->arg->eat_time > p->arg->sleep_time ? 
+                       p->arg->eat_time : p->arg->sleep_time;
+        t_time = (max_time * 2) / 5;
+        if (t_time > 100)
+            t_time = 100;
+        if (t_time < 1)
+            t_time = 1;
+        usleep(t_time * 1000);
+    }
+}
+
+int for_extra(t_philo *p)
+{
+    //pthread_mutex_lock(&p->meal);
+    //p->last_eat = for_time();
+    //pthread_mutex_unlock(&p->meal);
+    if (one_philo(p) == 1)
         return (1);
+    if ((p->l_fork + 1) % 2 == 0)
+        usleep(p->arg->eat_time * 500);
     return (0);
 }
 
-static int is_over(t_arg *arg)
-{
-    int over;
-
-    pthread_mutex_lock(&arg->c_lock);
-    over = arg->ate;
-    pthread_mutex_unlock(&arg->c_lock);
-    if (over == 1)
-        return (1);
-    return (0);
-}
-
-static void *ft(void *philo)
+void *ft(void *philo)
 {
     t_philo *p;
 
     p = (t_philo *)philo;
-    pthread_mutex_lock(&p->meal);
-    p->last_eat = for_time();
-    pthread_mutex_unlock(&p->meal);
-    if (one_philo(p) == 1)
+    if (for_extra(p) == 1)
         return (NULL);
-    if (p->arg->num_of_philo % 2 == 0)
-        usleep(500);
     while (1)
     {
         eating(p);
+        pthread_mutex_lock(&p->m_c);
+        if (p->arg->must_eat_c != -1 && p->eat_c >= p->arg->must_eat_c)
+        {
+            pthread_mutex_unlock(&p->m_c);
+            break;
+        }
+        pthread_mutex_unlock(&p->m_c);
         if (is_dead(p->arg) == 1 || is_over(p->arg) == 1)
             break;
         print(p->arg, p->l_fork + 1, "is sleeping");
-        usleep(p->arg->sleep_time + 1000);
-        if (is_dead(p->arg) == 1 || is_over(p->arg) == 1)
+        usleep(p->arg->sleep_time * 1000);
+        if (is_dead(p->arg) == 1)
             break;
-        print(p->arg, p->l_fork + 1, "is thinking");
-        if (p->arg->num_of_philo % 2 == 0)
-            usleep(100);
+        thinking(p);
     }
     return (NULL);
-}
-
-static void for_thread(t_arg *arg, t_philo *philo)
-{
-    int i;
-
-    i = 0;
-    while (i < arg->num_of_philo)
-    {
-        pthread_create(&philo[i].t_id, NULL, ft, &philo[i]);
-        usleep(100);
-        i++;
-    }
-    pthread_create(&arg->check, NULL, check, arg);
 }
 
 int main(int ac, char **av)
@@ -137,17 +100,12 @@ int main(int ac, char **av)
     pthread_mutex_init(&arg->c_lock, NULL);
     for_fork(arg);
     philo = for_philo(arg);
-    arg->start_time = for_time();
     for_thread(arg, philo);
     pthread_join(arg->check, NULL);
     i = -1;
     while (++i < arg->num_of_philo)
         pthread_join(philo[i].t_id, NULL);
-    pthread_mutex_destroy(&arg->print_w);
-    i = -1;
-    while (++i < arg->num_of_philo)
-        pthread_mutex_destroy(&arg->fork[i]);
-    pthread_mutex_destroy(&arg->c_lock);
+    for_destroy(arg);
     free(arg->fork);
     free(arg->philo);
     free(arg);

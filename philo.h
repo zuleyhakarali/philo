@@ -15,8 +15,9 @@ typedef struct s_philo
     int l_fork;
     int r_fork;
     int eat_c;
-    long last_eat;
+    long long last_eat;
     pthread_mutex_t meal;
+    pthread_mutex_t m_c;
     t_arg *arg;
 } t_philo;
 
@@ -27,7 +28,7 @@ typedef struct s_arg
     long die_time;
     long sleep_time;
     int must_eat_c;
-    long start_time;
+    long long start_time;
     int dead_philo_num;
     int ate;
     pthread_mutex_t print_w;
@@ -42,11 +43,17 @@ int main(int ac, char **av);
 void arg_check(int ac, char **av);
 void error(void);
 int	ft_atoi(const char *nptr);
-long for_time(void);
+long long for_time(void);
 t_arg *placement(int ac, char **av);
 void for_fork(t_arg *arg);
 t_philo *for_philo(t_arg *arg);
+int one_philo(t_philo *p);
 void *check(void *arg);
-void for_sleep(long long time, t_arg *a);
+void for_thread(t_arg *arg, t_philo *philo);
+void *ft(void *philo);
+void print(t_arg *a, int id, char *m);
+int is_dead(t_arg *arg);
+int is_over(t_arg *arg);
+void for_destroy(t_arg *arg);
 
 #endif
