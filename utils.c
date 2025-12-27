@@ -14,16 +14,6 @@ void for_fork(t_arg *arg)
         pthread_mutex_init(&arg->fork[i++], NULL);
 }
 
-void print(t_arg *a, int id, char *m)
-{
-    pthread_mutex_lock(&a->print_w);
-    pthread_mutex_lock(&a->dpn_lock);
-    if (a->dead_philo_num == 0)
-        printf("%lld %d %s\n", for_time() - a->start_time, id, m);
-    pthread_mutex_unlock(&a->dpn_lock);
-    pthread_mutex_unlock(&a->print_w);
-}
-
 int one_philo(t_philo *p)
 {
     if (p->arg->num_of_philo == 1)
@@ -57,4 +47,20 @@ int is_over(t_arg *arg)
     over = arg->ate;
     pthread_mutex_unlock(&arg->c_lock);
     return (over);
+}
+
+void for_destroy(t_arg *arg)
+{
+    int i;
+
+    i = 0;
+    pthread_mutex_destroy(&arg->print_w);
+    while (i < arg->num_of_philo)
+    {
+        pthread_mutex_destroy(&arg->fork[i]);
+        pthread_mutex_destroy(&arg->philo[i].meal);
+        pthread_mutex_destroy(&arg->philo[i].m_c);
+        i++;
+    }
+    pthread_mutex_destroy(&arg->c_lock);
 }

@@ -15,9 +15,6 @@ t_arg *placement(int ac, char **av)
         arg->must_eat_c = -1;
     else
         arg->must_eat_c = ft_atoi(av[5]);
-    if (arg->die_time <= 60 || arg->eat_time <= 60 ||
-        arg->sleep_time <= 60)
-        error();
     arg->dead_philo_num = 0;
     arg->ate = 0;
     return (arg);
