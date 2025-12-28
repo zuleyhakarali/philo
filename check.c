@@ -53,12 +53,12 @@ static int for_check(t_arg *a, int i, long time)
         return (0);
     if (time - for_meal > a->die_time)
     {
-        pthread_mutex_lock(&a->print_w);
+        pthread_mutex_lock(&a->p_lock);
         pthread_mutex_lock(&a->dpn_lock);
         a->dead_philo_num = 1;
         printf("%lld %d died\n", time - a->start_time, i + 1);
         pthread_mutex_unlock(&a->dpn_lock);
-        pthread_mutex_unlock(&a->print_w);
+        pthread_mutex_unlock(&a->p_lock);
         return (1);
     }
     return (0);

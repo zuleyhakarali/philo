@@ -65,10 +65,10 @@ long long for_time(void)
 
 void print(t_arg *a, int id, char *m)
 {
-    pthread_mutex_lock(&a->print_w);
+    pthread_mutex_lock(&a->p_lock);
     pthread_mutex_lock(&a->dpn_lock);
     if (a->dead_philo_num == 0)
         printf("%lld %d %s\n", for_time() - a->start_time, id, m);
     pthread_mutex_unlock(&a->dpn_lock);
-    pthread_mutex_unlock(&a->print_w);
+    pthread_mutex_unlock(&a->p_lock);
 }

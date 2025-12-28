@@ -25,7 +25,7 @@ int main(int ac, char **av)
 
     arg_check(ac, av);
     arg = placement(ac, av);
-    pthread_mutex_init(&arg->print_w, NULL);
+    pthread_mutex_init(&arg->p_lock, NULL);
     pthread_mutex_init(&arg->dpn_lock, NULL);
     pthread_mutex_init(&arg->c_lock, NULL);
     for_fork(arg);

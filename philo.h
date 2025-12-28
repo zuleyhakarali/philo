@@ -31,7 +31,7 @@ typedef struct s_arg
     long long start_time;
     int dead_philo_num;
     int ate;
-    pthread_mutex_t print_w;
+    pthread_mutex_t p_lock;
     pthread_mutex_t *fork;
     pthread_mutex_t dpn_lock;
     pthread_mutex_t c_lock;

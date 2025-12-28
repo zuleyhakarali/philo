@@ -54,7 +54,7 @@ void for_destroy(t_arg *arg)
     int i;
 
     i = 0;
-    pthread_mutex_destroy(&arg->print_w);
+    pthread_mutex_destroy(&arg->p_lock);
     while (i < arg->num_of_philo)
     {
         pthread_mutex_destroy(&arg->fork[i]);
