@@ -1,6 +1,21 @@
 #include "philo.h"
 
-void for_fork(t_arg *arg)
+void for_free(t_arg *arg, int i)
+{
+    int j;
+
+    j = 0;
+    pthread_mutex_destroy(&arg->p_lock);
+    pthread_mutex_destroy(&arg->dpn_lock);
+    if (i == 1)
+    {
+        while (j < arg->num_of_philo)
+            pthread_mutex_destroy(&arg->fork[i++]);
+        free(arg);
+    }
+}
+
+int for_fork(t_arg *arg)
 {
     int num;
     int i;
@@ -8,24 +23,13 @@ void for_fork(t_arg *arg)
     num = arg->num_of_philo;
     arg->fork = malloc(num * sizeof(pthread_mutex_t));
     if (!arg->fork)
-        error();
+    {
+        for_free(arg, 0);
+        return (1);
+    }
     i = 0;
     while (i < num)
         pthread_mutex_init(&arg->fork[i++], NULL);
-}
-
-int one_philo(t_philo *p)
-{
-    if (p->arg->num_of_philo == 1)
-    {
-        p->last_eat = for_time();
-        pthread_mutex_lock(&p->arg->fork[p->r_fork]);
-        print(p->arg, p->l_fork + 1, "has taken a fork");
-        while (!p->arg->dead_philo_num)
-            usleep(100);
-        pthread_mutex_unlock(&p->arg->fork[p->r_fork]);
-        return (1);
-    }
     return (0);
 }
 
@@ -39,16 +43,6 @@ int is_dead(t_arg *arg)
     return (dead);
 }
 
-int is_over(t_arg *arg)
-{
-    int over;
-
-    pthread_mutex_lock(&arg->c_lock);
-    over = arg->ate;
-    pthread_mutex_unlock(&arg->c_lock);
-    return (over);
-}
-
 void for_destroy(t_arg *arg)
 {
     int i;
@@ -58,9 +52,12 @@ void for_destroy(t_arg *arg)
     while (i < arg->num_of_philo)
     {
         pthread_mutex_destroy(&arg->fork[i]);
-        pthread_mutex_destroy(&arg->philo[i].meal);
+        pthread_mutex_destroy(&arg->philo[i].last_eat_c);
         pthread_mutex_destroy(&arg->philo[i].m_c);
         i++;
     }
-    pthread_mutex_destroy(&arg->c_lock);
+    pthread_mutex_destroy(&arg->dpn_lock);
+    free(arg->fork);
+    free(arg->philo);
+    free(arg);
 }

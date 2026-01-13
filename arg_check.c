@@ -1,33 +1,21 @@
 #include "philo.h"
 
-int	ft_atoi(const char *nptr)
+int	ft_atoi(const char *s)
 {
 	int	i;
 	int	result;
-	int	sign;
 
 	i = 0;
 	result = 0;
-	sign = 1;
-
-	if ((nptr[i] == '-') || (nptr[i] == '+'))
-	{
-		if (nptr[i] == '-')
-			sign *= -1;
-		i++;
-	}
-	while (nptr[i] >= '0' && nptr[i] <= '9')
-		result = result * 10 + (nptr[i++] - '0');
-	return (sign * result);
+	while (s[i] >= '0' && s[i] <= '9')
+    {
+		result = result * 10 + (s[i] - '0');
+        i++;
+    }
+	return (result);
 }
 
-void error(void)
-{
-    write(2, "Error\n", 6);
-    exit(1);
-}
-
-void arg_check(int ac, char **av)
+int arg_check(int ac, char **av)
 {
     int i;
     int j;
@@ -35,31 +23,31 @@ void arg_check(int ac, char **av)
 
     i = 1;
     if (ac != 5 && ac != 6)
-        error();
+        return (1);
     while (av[i])
     {
         j = 0;
         while (av[i][j])
         {
             if (!(av[i][j] >= '0' && av[i][j] <= '9'))
-                error();
+                return (1);
             j++;
         }
         if (j > 10)
-            error();
+            return (1);
         val = ft_atoi(av[i]);
         if (val > 2147483647 || val <= 0)
-            error();
+            return (1);
         i++;
     }
+    return (0);
 }
 
 long long for_time(void)
 {
     struct timeval tv;
 
-    if (gettimeofday(&tv, NULL) == -1)
-        return (0);
+    gettimeofday(&tv, NULL);
     return ((tv.tv_sec * 1000LL) + (tv.tv_usec / 1000LL));
 }
 

@@ -6,7 +6,7 @@ t_arg *placement(int ac, char **av)
 
     arg = malloc(sizeof(t_arg));
     if (!arg)
-        error();
+        return (NULL);
     arg->num_of_philo = ft_atoi(av[1]);
     arg->die_time = ft_atoi(av[2]);
     arg->eat_time = ft_atoi(av[3]);
@@ -16,7 +16,6 @@ t_arg *placement(int ac, char **av)
     else
         arg->must_eat_c = ft_atoi(av[5]);
     arg->dead_philo_num = 0;
-    arg->ate = 0;
     return (arg);
 }
 
@@ -26,31 +25,30 @@ t_philo *for_philo(t_arg *arg)
 
     arg->philo = malloc(arg->num_of_philo * sizeof(t_philo));
     if (!arg->philo)
-        error();
+        return (NULL);
     i = 0;
     while (i < arg->num_of_philo)
     {
         arg->philo[i].r_fork = (i + 1) % arg->num_of_philo;
         arg->philo[i].l_fork = i;
         arg->philo[i].eat_c = 0;
-
         arg->philo[i].arg = arg;
-        pthread_mutex_init(&arg->philo[i].meal, NULL);
-        pthread_mutex_init(&arg->philo[i].m_c, NULL);
+        if (pthread_mutex_init(&arg->philo[i].last_eat_c, NULL) != 0)
+            return (NULL);
+        if (pthread_mutex_init(&arg->philo[i].m_c, NULL) != 0)
+            return (NULL);
         i++;
     }
     return (arg->philo);
 }
 
-static int for_check(t_arg *a, int i, long time)
+static int for_check(t_arg *a, int i, long long time)
 {
-    long for_meal;
+    long long for_meal;
 
-    pthread_mutex_lock(&a->philo[i].meal);
+    pthread_mutex_lock(&a->philo[i].last_eat_c);
     for_meal = a->philo[i].last_eat;
-    pthread_mutex_unlock(&a->philo[i].meal);
-    if(for_meal == 0)
-        return (0);
+    pthread_mutex_unlock(&a->philo[i].last_eat_c);
     if (time - for_meal > a->die_time)
     {
         pthread_mutex_lock(&a->p_lock);
@@ -64,8 +62,11 @@ static int for_check(t_arg *a, int i, long time)
     return (0);
 }
 
-static int eat_check(t_arg *a, int i, int c)
+static int eat_check(t_arg *a, int i)
 {
+    int c;
+
+    c = 0;
     while (i < a->num_of_philo)
     {
         pthread_mutex_lock(&a->philo[i].m_c);
@@ -75,12 +76,7 @@ static int eat_check(t_arg *a, int i, int c)
         i++;
     }
     if (c == a->num_of_philo)
-    {
-        pthread_mutex_lock(&a->c_lock);
-        a->ate = 1;
-        pthread_mutex_unlock(&a->c_lock);
         return (1);
-    }
     return (0);
 }
 
@@ -88,25 +84,22 @@ void *check(void *arg)
 {
     t_arg *a;
     int i;
-    int c;
     long long time;
 
     a = (t_arg *)arg;
     while (1)
     {
-        time = for_time();
         i = 0;
-        c = 0;
-        if (eat_check(a, i, c) == 1)
+        if (eat_check(a, i) == 1)
             return (NULL);
-        i = 0;
-        while (i <a->num_of_philo)
+        time = for_time();
+        while (i < a->num_of_philo)
         {
             if (for_check(a, i, time) == 1)
                 return (NULL);
             i++;
         }
-        usleep(200);
+        usleep(1000);
     }
     return (NULL);
 }

@@ -7,8 +7,6 @@
 # include <sys/time.h>
 # include <stdio.h>
 
-typedef struct s_arg t_arg;
-
 typedef struct s_philo
 {
     pthread_t t_id;
@@ -16,9 +14,9 @@ typedef struct s_philo
     int r_fork;
     int eat_c;
     long long last_eat;
-    pthread_mutex_t meal;
+    pthread_mutex_t last_eat_c;
     pthread_mutex_t m_c;
-    t_arg *arg;
+    struct s_arg *arg;
 } t_philo;
 
 typedef struct s_arg
@@ -30,30 +28,26 @@ typedef struct s_arg
     int must_eat_c;
     long long start_time;
     int dead_philo_num;
-    int ate;
     pthread_mutex_t p_lock;
     pthread_mutex_t *fork;
     pthread_mutex_t dpn_lock;
-    pthread_mutex_t c_lock;
     pthread_t check;
     t_philo *philo;
 } t_arg;
 
 int main(int ac, char **av);
-void arg_check(int ac, char **av);
+int arg_check(int ac, char **av);
 void error(void);
-int	ft_atoi(const char *nptr);
+int	ft_atoi(const char *s);
 long long for_time(void);
 t_arg *placement(int ac, char **av);
-void for_fork(t_arg *arg);
+int for_fork(t_arg *arg);
 t_philo *for_philo(t_arg *arg);
-int one_philo(t_philo *p);
 void *check(void *arg);
-void for_thread(t_arg *arg, t_philo *philo);
 void *ft(void *philo);
 void print(t_arg *a, int id, char *m);
 int is_dead(t_arg *arg);
-int is_over(t_arg *arg);
 void for_destroy(t_arg *arg);
+void for_free(t_arg *arg, int i);
 
 #endif
