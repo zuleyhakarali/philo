@@ -1,24 +1,5 @@
 #include "philo.h"
 
-t_arg	*placement(int ac, char **av)
-{
-	t_arg	*arg;
-
-	arg = malloc(sizeof(t_arg));
-	if (!arg)
-		return (NULL);
-	arg->num_of_philo = ft_atoi(av[1]);
-	arg->die_time = ft_atoi(av[2]);
-	arg->eat_time = ft_atoi(av[3]);
-	arg->sleep_time = ft_atoi(av[4]);
-	if (ac == 5)
-		arg->must_eat_c = -1;
-	else
-		arg->must_eat_c = ft_atoi(av[5]);
-	arg->dead_philo_num = 0;
-	return (arg);
-}
-
 t_philo	*for_philo(t_arg *arg)
 {
 	int	i;

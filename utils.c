@@ -33,6 +33,24 @@ int	for_fork(t_arg *arg)
 	return (0);
 }
 
+long long	for_time(void)
+{
+	struct timeval	tv;
+
+	gettimeofday(&tv, NULL);
+	return ((tv.tv_sec * 1000LL) + (tv.tv_usec / 1000LL));
+}
+
+void	print(t_arg *a, int id, char *m)
+{
+	pthread_mutex_lock(&a->p_lock);
+	pthread_mutex_lock(&a->dpn_lock);
+	if (a->dead_philo_num == 0)
+		printf("%lld %d %s\n", for_time() - a->start_time, id, m);
+	pthread_mutex_unlock(&a->dpn_lock);
+	pthread_mutex_unlock(&a->p_lock);
+}
+
 int	is_dead(t_arg *arg)
 {
 	int	dead;
@@ -41,23 +59,4 @@ int	is_dead(t_arg *arg)
 	dead = arg->dead_philo_num;
 	pthread_mutex_unlock(&arg->dpn_lock);
 	return (dead);
-}
-
-void	for_destroy(t_arg *arg)
-{
-	int	i;
-
-	i = 0;
-	pthread_mutex_destroy(&arg->p_lock);
-	while (i < arg->num_of_philo)
-	{
-		pthread_mutex_destroy(&arg->fork[i]);
-		pthread_mutex_destroy(&arg->philo[i].last_eat_c);
-		pthread_mutex_destroy(&arg->philo[i].m_c);
-		i++;
-	}
-	pthread_mutex_destroy(&arg->dpn_lock);
-	free(arg->fork);
-	free(arg->philo);
-	free(arg);
 }

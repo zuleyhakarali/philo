@@ -38,6 +38,25 @@ static int	for_thread(t_arg *arg, t_philo *philo)
 	return (0);
 }
 
+static void	for_destroy(t_arg *arg)
+{
+	int	i;
+
+	i = 0;
+	pthread_mutex_destroy(&arg->p_lock);
+	while (i < arg->num_of_philo)
+	{
+		pthread_mutex_destroy(&arg->fork[i]);
+		pthread_mutex_destroy(&arg->philo[i].last_eat_c);
+		pthread_mutex_destroy(&arg->philo[i].m_c);
+		i++;
+	}
+	pthread_mutex_destroy(&arg->dpn_lock);
+	free(arg->fork);
+	free(arg->philo);
+	free(arg);
+}
+
 int	main(int ac, char **av)
 {
 	t_arg	*arg;

@@ -47,7 +47,6 @@ void		*check(void *arg);
 void		*ft(void *philo);
 void		print(t_arg *a, int id, char *m);
 int			is_dead(t_arg *arg);
-void		for_destroy(t_arg *arg);
 void		for_free(t_arg *arg, int i);
 
 #endif

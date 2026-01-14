@@ -43,20 +43,21 @@ int	arg_check(int ac, char **av)
 	return (0);
 }
 
-long long	for_time(void)
+t_arg	*placement(int ac, char **av)
 {
-	struct timeval	tv;
+	t_arg	*arg;
 
-	gettimeofday(&tv, NULL);
-	return ((tv.tv_sec * 1000LL) + (tv.tv_usec / 1000LL));
-}
-
-void	print(t_arg *a, int id, char *m)
-{
-	pthread_mutex_lock(&a->p_lock);
-	pthread_mutex_lock(&a->dpn_lock);
-	if (a->dead_philo_num == 0)
-		printf("%lld %d %s\n", for_time() - a->start_time, id, m);
-	pthread_mutex_unlock(&a->dpn_lock);
-	pthread_mutex_unlock(&a->p_lock);
+	arg = malloc(sizeof(t_arg));
+	if (!arg)
+		return (NULL);
+	arg->num_of_philo = ft_atoi(av[1]);
+	arg->die_time = ft_atoi(av[2]);
+	arg->eat_time = ft_atoi(av[3]);
+	arg->sleep_time = ft_atoi(av[4]);
+	if (ac == 5)
+		arg->must_eat_c = -1;
+	else
+		arg->must_eat_c = ft_atoi(av[5]);
+	arg->dead_philo_num = 0;
+	return (arg);
 }
