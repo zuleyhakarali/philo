@@ -26,16 +26,20 @@ t_philo	*for_philo(t_arg *arg)
 static int	for_check(t_arg *a, int i, long long time)
 {
 	long long	for_meal;
+	long long	d_time;
 
 	pthread_mutex_lock(&a->philo[i].last_eat_c);
 	for_meal = a->philo[i].last_eat;
 	pthread_mutex_unlock(&a->philo[i].last_eat_c);
-	if (time - for_meal > a->die_time)
+	if (time >= for_meal && time - for_meal > a->die_time)
 	{
 		pthread_mutex_lock(&a->p_lock);
 		pthread_mutex_lock(&a->dpn_lock);
 		a->dead_philo_num = 1;
-		printf("%lld %d died\n", time - a->start_time, i + 1);
+		d_time = time - a->start_time;
+		if (d_time < 0)
+			d_time = 0;
+		printf("%lld %d died\n", d_time, i + 1);
 		pthread_mutex_unlock(&a->dpn_lock);
 		pthread_mutex_unlock(&a->p_lock);
 		return (1);
@@ -68,11 +72,10 @@ void	*check(void *arg)
 	long long	time;
 
 	a = (t_arg *)arg;
+	usleep(1000);
 	while (1)
 	{
 		i = 0;
-		if (eat_check(a, i) == 1)
-			return (NULL);
 		time = for_time();
 		while (i < a->num_of_philo)
 		{
@@ -80,6 +83,8 @@ void	*check(void *arg)
 				return (NULL);
 			i++;
 		}
+		if (eat_check(a, 0) == 1)
+			return (NULL);
 		usleep(1000);
 	}
 	return (NULL);

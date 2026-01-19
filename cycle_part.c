@@ -2,8 +2,16 @@
 
 static void	eating(t_philo *p)
 {
-	pthread_mutex_lock(&p->arg->fork[p->l_fork]);
-	pthread_mutex_lock(&p->arg->fork[p->r_fork]);
+	if ((p->l_fork + 1) % 2 == 0)
+	{
+		pthread_mutex_lock(&p->arg->fork[p->l_fork]);
+		pthread_mutex_lock(&p->arg->fork[p->r_fork]);
+	}
+	else
+	{
+		pthread_mutex_lock(&p->arg->fork[p->r_fork]);
+		pthread_mutex_lock(&p->arg->fork[p->l_fork]);
+	}
 	print(p->arg, p->l_fork + 1, "has taken a fork");
 	print(p->arg, p->l_fork + 1, "has taken a fork");
 	pthread_mutex_lock(&p->last_eat_c);

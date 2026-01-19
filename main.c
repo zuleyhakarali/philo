@@ -15,26 +15,27 @@ static int	for_thread(t_arg *arg, t_philo *philo)
 {
 	int	i;
 
-	i = 0;
+	i = -1;
 	arg->start_time = for_time();
-	while (i < arg->num_of_philo)
+	usleep(100);
+	while (++i < arg->num_of_philo)
 	{
 		pthread_mutex_lock(&arg->philo[i].last_eat_c);
 		arg->philo[i].last_eat = arg->start_time;
 		pthread_mutex_unlock(&arg->philo[i].last_eat_c);
+	}
+	i = -1;
+	while (++i < arg->num_of_philo)
+	{
 		if (pthread_create(&philo[i].t_id, NULL, ft, &philo[i]) != 0)
 			return (1);
-		i++;
 	}
 	if (pthread_create(&arg->check, NULL, check, arg) != 0)
 		return (1);
 	pthread_join(arg->check, NULL);
-	i = 0;
-	while (i < arg->num_of_philo)
-	{
+	i = -1;
+	while (++i < arg->num_of_philo)
 		pthread_join(philo[i].t_id, NULL);
-		i++;
-	}
 	return (0);
 }
 
